@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PPL Trainer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0f;color:#e0e0e0;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+#app{max-width:480px;margin:0 auto;padding:16px 16px 60px;overflow-x:hidden}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.hdr h1{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.hdr-btn{background:#1a1a2e;border:1px solid #2a2a3e;border-radius:10px;color:#ccc;padding:8px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.hdr-btn:active{background:#2a2a3e}
+.tcards{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.tcard{border-radius:16px;padding:20px;cursor:pointer;border:1px solid transparent;transition:transform .12s}
+.tcard:active{transform:scale(.98)}
+.tcard.push{background:linear-gradient(135deg,#1e3a5f,#141428);border-color:#3b82f630}
+.tcard.pull{background:linear-gradient(135deg,#1a4a2e,#141428);border-color:#22c55e30}
+.tcard.legs{background:linear-gradient(135deg,#4a2e1a,#141428);border-color:#f9731630}
+.tcard h2{font-size:18px;margin-bottom:4px}
+.tcard p{font-size:13px;color:#888}
+.tcard .elist{font-size:12px;color:#555;margin-top:8px;line-height:1.7}
+.shdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.shdr h2{font-size:20px;flex:1}
+.bbtn{background:none;border:1px solid #333;border-radius:10px;color:#aaa;padding:8px 14px;font-size:13px;cursor:pointer}
+.bbtn:active{background:#1a1a2e}
+.warmup{background:#1a1a2e;border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid #2a2a3e}
+.warmup h3{font-size:15px;margin-bottom:10px}
+.warmup li{font-size:13px;color:#aaa;padding:3px 0;list-style:none}
+.warmup li::before{content:'◦ ';color:#555}
+.wbtn{width:100%;padding:12px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;margin-top:12px;color:#fff}
+.wbtn:active{opacity:.8}
+.warmup.done{opacity:.45;pointer-events:none}
+.warmup.done .wbtn{display:none}
+.excard{background:#1a1a2e;border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid #2a2a3e}
+.exname{font-size:17px;font-weight:600;margin-bottom:2px}
+.exmeta{font-size:12px;color:#777;margin-bottom:8px}
+.exlast{font-size:11px;color:#999;background:#ffffff06;padding:6px 10px;border-radius:8px;margin-bottom:10px;line-height:1.6;display:block}
+.exlast b{color:#bbb;font-weight:600}
+.ttog{display:flex;align-items:center;gap:6px;color:#666;font-size:13px;cursor:pointer;background:none;border:none;padding:4px 0;margin-bottom:6px}
+.ttog:active{color:#999}
+.tbox{background:#0d0d18;border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid #1e1e30;display:none}
+.tbox.open{display:block}
+.tbox svg{display:block;margin:0 auto 10px;width:150px;height:auto}
+.tbox p{font-size:12px;color:#888;line-height:1.5}
+.srow{display:flex;align-items:center;gap:5px;margin-bottom:6px;padding:8px 6px;background:#0d0d18;border-radius:10px;border-left:3px solid transparent;flex-wrap:nowrap}
+.srow.done{border-left-color:#22c55e30;opacity:.6}
+.slbl{font-size:12px;color:#555;width:20px;flex-shrink:0;text-align:center}
+.sinp{background:#080812;border:1px solid #252535;border-radius:8px;color:#e0e0e0;padding:7px 2px;font-size:14px;width:48px;text-align:center;-webkit-appearance:none;appearance:none}
+.sinp:focus{outline:none;border-color:#444}
+.sunit{font-size:10px;color:#444;flex-shrink:0}
+.feels{display:flex;gap:2px;margin-left:auto}
+.fb{width:28px;height:28px;border-radius:50%;border:1px solid #252535;background:transparent;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0}
+.fb.on{border-color:#555;background:#2a2a3e}
+.fb:active{transform:scale(.9)}
+.sd{width:30px;height:30px;border-radius:50%;border:1px solid #252535;background:transparent;color:#444;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sd:active{background:#1a1a2e}
+.sd.chk{background:#22c55e25;border-color:#22c55e50;color:#22c55e}
+.timer-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0fF2;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200}
+.timer-ov .tt{font-size:72px;font-weight:700;font-variant-numeric:tabular-nums}
+.timer-ov .tl{font-size:15px;color:#777;margin-bottom:16px}
+.timer-ov .tb{width:180px;height:5px;background:#1a1a2e;border-radius:3px;margin-top:16px;overflow:hidden}
+.timer-ov .tf{height:100%;border-radius:3px;transition:width .3s linear}
+.timer-ov .ts{margin-top:28px;background:none;border:1px solid #333;color:#888;padding:12px 32px;border-radius:12px;font-size:15px;cursor:pointer}
+.timer-ov .ts:active{background:#1a1a2e}
+.finbtn{width:100%;padding:16px;border-radius:14px;border:none;font-size:17px;font-weight:700;cursor:pointer;margin-top:16px;color:#fff}
+.finbtn:active{opacity:.8}
+.finbtn:disabled{opacity:.3;pointer-events:none}
+.slabel{font-size:12px;color:#444;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.empty{text-align:center;color:#444;padding:40px 20px;font-size:14px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.cal-arr{background:none;border:1px solid #2a2a3e;border-radius:10px;color:#aaa;width:38px;height:38px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cal-arr:active{background:#1a1a2e;transform:scale(.95)}
+.cal-wrap{width:100%;overflow:hidden}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:16px;width:100%}
+.cal-hdr{text-align:center;font-size:9px;color:#444;padding:4px 0;text-transform:uppercase;letter-spacing:.3px;font-weight:600;overflow:hidden;min-width:0}
+.cal-day{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:#333;position:relative;background:#0d0d14;border:1.5px solid #151520;transition:all .12s;min-width:0;overflow:hidden;padding:1px}
+.cal-day.empty{background:transparent;border-color:transparent}
+.cal-day.has-date{color:#555}
+.cal-day.today{border-color:#555;color:#aaa}
+.cal-day.today .day-num{font-weight:700}
+.cal-day.workout{cursor:pointer;color:#ddd}
+.cal-day.workout:active{transform:scale(.92)}
+.cal-day.sel{border-width:2px}
+.cal-dots{display:flex;gap:2px;margin-top:1px}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.stat-card{background:#1a1a2e;border-radius:12px;padding:10px 4px;border:1px solid #2a2a3e;text-align:center}
+.stat-num{font-size:20px;font-weight:700}
+.stat-lbl{font-size:9px;color:#555;margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+.type-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.type-chip{padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600}
+.day-detail{margin-top:8px;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.dex{background:#0d0d18;border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid #1e1e30}
+.dex-name{font-size:14px;font-weight:600;margin-bottom:6px}
+.dex-set{font-size:12px;color:#aaa;padding:2px 0}
+.dex-hdr{font-size:13px;font-weight:600;margin-bottom:8px;text-transform:capitalize;display:flex;align-items:center;gap:8px}
+.dex-hdr::after{content:'';flex:1;height:1px;background:#1e1e30}
+.no-data{text-align:center;color:#333;padding:24px 16px;font-size:13px;border:1px dashed #1e1e30;border-radius:12px;margin-bottom:16px}
+.io-bar{display:flex;gap:8px;margin-bottom:16px}
+.io-btn{flex:1;padding:10px;border-radius:10px;border:1px solid #2a2a3e;background:#1a1a2e;color:#aaa;font-size:13px;font-weight:600;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.io-btn:active{background:#2a2a3e;transform:scale(.97)}
+#file-input{display:none}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:300;animation:toastIn .3s ease,toastOut .3s ease 2s forwards;pointer-events:none;white-space:nowrap}
+.toast.err{background:#ef4444;color:#fff}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+.confirm-ov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0fE8;display:flex;align-items:center;justify-content:center;z-index:250;padding:24px}
+.confirm-box{background:#1a1a2e;border:1px solid #2a2a3e;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-box h3{font-size:16px;margin-bottom:8px}
+.confirm-box p{font-size:13px;color:#888;margin-bottom:20px;line-height:1.5}
+.import-choice{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.import-choice button{width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
+.import-choice .ic-replace{background:#ef4444;color:#fff}
+.import-choice .ic-merge{background:#3b82f6;color:#fff}
+.import-choice .ic-cancel{background:#252535;color:#aaa}
+@media(max-width:374px){
+.sinp{width:42px;font-size:13px;padding:6px 1px}
+.fb{width:25px;height:25px;font-size:11px}
+.sd{width:27px;height:27px;font-size:13px}
+.slbl{width:16px;font-size:11px}
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+.cal-day{font-size:11px;border-radius:6px}
+.cal-hdr{font-size:8px}
+.cal-dot{width:3px;height:3px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="overlays"></div>
+<script>
+const COLORS={push:'#3b82f6',pull:'#22c55e',legs:'#f97316'};
+const FEELS=['😊','😐','😤','🔥'];
+const FEEL_LABELS={'😊':'Easy','😐':'Moderate','😤':'Hard','🔥':'Max'};
+const PROGRAMS={
+push:{name:'Push',color:'#3b82f6',
+warmup:['2 min arm circles & jumping jacks','Band pull-aparts × 15','Push-ups × 10','Empty bar bench press × 10'],
+exercises:[
+{id:'bench_press',name:'Flat Barbell Bench Press',sets:4,reps:'8-10',rest:120,tip:'Retract shoulder blades, plant feet flat. Lower bar to mid-chest, press up in slight arc. Keep wrists straight over elbows.'},
+{id:'overhead_press',name:'Overhead Press',sets:3,reps:'8-10',rest:90,tip:'Start at collarbone level. Press straight up, moving head through at top. Brace core tight, avoid leaning back.'},
+{id:'incline_db_fly',name:'Incline DB Fly',sets:3,reps:'10-12',rest:90,tip:'Set bench to 30°. Start with dumbbells above chest, palms facing in. Open arms wide in a big arc with a slight elbow bend. Feel a deep stretch in your chest at the bottom, then squeeze pecs to bring dumbbells back together.'},
+{id:'cable_flyes',name:'Cable Flyes',sets:3,reps:'12-15',rest:45,tip:'Slight bend in elbows throughout. Bring hands together at chest height. Squeeze pecs at the peak, slow return.'},
+{id:'tricep_pushdown',name:'Tricep Pushdown',sets:3,reps:'12-15',rest:45,tip:'Pin elbows to sides. Only forearms move. Full extension at bottom, squeeze triceps. Control the weight back up.'}
+]},
+pull:{name:'Pull',color:'#22c55e',
+warmup:['2 min arm swings & band pulls','Band face pulls × 15','Scapular pull-ups × 8','Light lat pulldown × 10'],
+exercises:[
+{id:'barbell_row',name:'Barbell Row',sets:4,reps:'8-10',rest:120,tip:'Hinge at hips ~45°, back flat. Pull bar to lower chest/upper belly. Squeeze shoulder blades together at top.'},
+{id:'lat_pulldown',name:'Lat Pulldown',sets:3,reps:'10-12',rest:90,tip:'Grip slightly wider than shoulders. Pull bar to upper chest, leading with elbows. Lean back slightly, feel lats stretch at top.'},
+{id:'seated_cable_row',name:'Seated Cable Row',sets:3,reps:'10-12',rest:90,tip:'Sit tall, slight knee bend. Pull handle to lower chest. Squeeze shoulder blades, extend arms fully.'},
+{id:'face_pull',name:'Face Pull',sets:3,reps:'15-20',rest:45,tip:'Set cable at face height. Pull rope to ears, externally rotating at the end. Elbows high and wide.'},
+{id:'barbell_curl',name:'Barbell Curl',sets:3,reps:'10-12',rest:45,tip:'Stand tall, elbows pinned to sides. Curl with control, squeeze at top. Lower slowly.'}
+]},
+legs:{name:'Legs',color:'#f97316',
+warmup:['2 min high knees & leg swings','Bodyweight squats × 15','Glute bridges × 12','Light goblet squat × 10'],
+exercises:[
+{id:'barbell_squat',name:'Barbell Squat',sets:4,reps:'6-8',rest:120,tip:'Bar on upper traps, feet shoulder-width. Break at hips and knees together. Depth to parallel or below. Drive through whole foot.'},
+{id:'leg_press',name:'Leg Press',sets:3,reps:'10-12',rest:90,tip:'Feet shoulder-width on platform. Lower until knees near 90°. Press through heels. Keep lower back pressed into pad.'},
+{id:'romanian_deadlift',name:'Romanian Deadlift',sets:3,reps:'10-12',rest:90,tip:'Slight knee bend, hinge at hips. Bar stays close to legs. Feel hamstring stretch, drive hips forward.'},
+{id:'leg_curl',name:'Leg Curl',sets:3,reps:'12-15',rest:45,tip:'Adjust pad above ankles. Curl fully, squeeze hamstrings at top. Lower slowly. Keep hips pressed down.'},
+{id:'calf_raise',name:'Calf Raise',sets:4,reps:'15-20',rest:45,tip:'Full range — drop heels low, rise to maximum. Pause at top 1-2s. Slow negative.'}
+]}
+};
+
+function getSVG(id,c){
+const b='#d0d0d0',e='#666',g='#333';
+const S={
+bench_press:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="40" y="82" width="100" height="5" rx="2" fill="#333"/><line x1="50" y1="87" x2="50" y2="130" stroke="${e}" stroke-width="2"/><line x1="130" y1="87" x2="130" y2="130" stroke="${e}" stroke-width="2"/><line x1="46" y1="30" x2="46" y2="82" stroke="${e}" stroke-width="2.5"/><line x1="38" y1="34" x2="54" y2="34" stroke="${e}" stroke-width="2"/><circle cx="132" cy="74" r="7" stroke="${b}" stroke-width="2.5"/><line x1="125" y1="74" x2="78" y2="78" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="78" y1="78" x2="60" y2="100" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="60" y1="100" x2="50" y2="125" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="105" y1="76" x2="105" y2="50" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="95" y1="77" x2="95" y2="50" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="72" y1="50" x2="128" y2="50" stroke="#999" stroke-width="2.5"/><rect x="68" y="44" width="7" height="12" rx="1" fill="#777"/><rect x="125" y="44" width="7" height="12" rx="1" fill="#777"/><line x1="150" y1="63" x2="150" y2="40" stroke="${c}" stroke-width="2"/><polygon points="145,44 150,34 155,44" fill="${c}"/></svg>`,
+overhead_press:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><circle cx="100" cy="45" r="7" stroke="${b}" stroke-width="2.5"/><line x1="100" y1="52" x2="100" y2="90" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="90" x2="85" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="90" x2="115" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="60" x2="80" y2="50" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="80" y1="50" x2="74" y2="26" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="60" x2="120" y2="50" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="120" y1="50" x2="126" y2="26" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="58" y1="26" x2="142" y2="26" stroke="#999" stroke-width="2.5"/><rect x="55" y="20" width="7" height="12" rx="1" fill="#777"/><rect x="138" y="20" width="7" height="12" rx="1" fill="#777"/><line x1="155" y1="38" x2="155" y2="16" stroke="${c}" stroke-width="2"/><polygon points="150,20 155,10 160,20" fill="${c}"/></svg>`,
+incline_db_fly:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><line x1="65" y1="95" x2="95" y2="48" stroke="#444" stroke-width="5" stroke-linecap="round"/><line x1="65" y1="95" x2="42" y2="95" stroke="#444" stroke-width="5" stroke-linecap="round"/><line x1="53" y1="97" x2="53" y2="130" stroke="${e}" stroke-width="2"/><line x1="82" y1="68" x2="82" y2="130" stroke="${e}" stroke-width="2"/><circle cx="100" cy="40" r="7" stroke="${b}" stroke-width="2.5"/><line x1="96" y1="47" x2="72" y2="88" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="72" y1="88" x2="55" y2="110" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="55" y1="110" x2="48" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="88" y1="58" x2="65" y2="30" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="84" y1="64" x2="60" y2="42" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="63" cy="27" rx="4" ry="3" fill="#777" transform="rotate(-30,63,27)"/><ellipse cx="57" cy="40" rx="4" ry="3" fill="#777" transform="rotate(-30,57,40)"/><path d="M58 24 C72 15 82 18 88 26" stroke="${c}" stroke-width="1.5" stroke-dasharray="3,2" fill="none"/><line x1="88" y1="22" x2="88" y2="30" stroke="${c}" stroke-width="2"/><line x1="84" y1="26" x2="92" y2="26" stroke="${c}" stroke-width="2"/><text x="128" y="36" fill="${c}" font-size="10" font-weight="600">squeeze</text><path d="M120 40 C105 48 100 52 94 56" stroke="${c}" stroke-width="1" fill="none" stroke-dasharray="2,2"/></svg>`,
+cable_flyes:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="15" y="15" width="8" height="115" rx="2" fill="#444"/><rect x="177" y="15" width="8" height="115" rx="2" fill="#444"/><circle cx="100" cy="50" r="7" stroke="${b}" stroke-width="2.5"/><line x1="100" y1="57" x2="100" y2="95" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="95" x2="85" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="95" x2="115" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="65" x2="70" y2="60" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="70" y1="60" x2="92" y2="78" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="65" x2="130" y2="60" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="130" y1="60" x2="108" y2="78" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="23" y1="30" x2="70" y2="60" stroke="#555" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="177" y1="30" x2="130" y2="60" stroke="#555" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="60" y1="75" x2="80" y2="78" stroke="${c}" stroke-width="2"/><polygon points="77,73 84,78 77,83" fill="${c}"/><line x1="140" y1="75" x2="120" y2="78" stroke="${c}" stroke-width="2"/><polygon points="123,73 116,78 123,83" fill="${c}"/></svg>`,
+tricep_pushdown:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="130" y="10" width="8" height="120" rx="2" fill="#444"/><circle cx="134" cy="18" r="6" fill="#555"/><circle cx="90" cy="42" r="7" stroke="${b}" stroke-width="2.5"/><line x1="90" y1="49" x2="90" y2="90" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="90" y1="90" x2="78" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="90" y1="90" x2="102" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="90" y1="62" x2="100" y2="70" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="70" x2="98" y2="92" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="134" y1="18" x2="100" y2="70" stroke="#555" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="108" y1="78" x2="108" y2="100" stroke="${c}" stroke-width="2"/><polygon points="103,96 108,106 113,96" fill="${c}"/></svg>`,
+barbell_row:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><circle cx="72" cy="42" r="7" stroke="${b}" stroke-width="2.5"/><line x1="78" y1="46" x2="120" y2="68" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="120" y1="68" x2="130" y2="105" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="130" y1="105" x2="120" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="120" y1="68" x2="140" y2="105" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="140" y1="105" x2="148" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="95" y1="55" x2="105" y2="65" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="105" y1="65" x2="100" y2="85" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="75" y1="85" x2="135" y2="85" stroke="#999" stroke-width="2.5"/><rect x="72" y="79" width="7" height="12" rx="1" fill="#777"/><rect x="131" y="79" width="7" height="12" rx="1" fill="#777"/><line x1="58" y1="92" x2="58" y2="72" stroke="${c}" stroke-width="2"/><polygon points="53,76 58,66 63,76" fill="${c}"/></svg>`,
+lat_pulldown:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="96" y="8" width="8" height="80" rx="2" fill="#444"/><line x1="60" y1="20" x2="140" y2="20" stroke="${e}" stroke-width="2.5"/><rect x="75" y="100" width="50" height="5" rx="2" fill="#333"/><line x1="90" y1="105" x2="90" y2="130" stroke="${e}" stroke-width="2"/><line x1="110" y1="105" x2="110" y2="130" stroke="${e}" stroke-width="2"/><circle cx="100" cy="52" r="7" stroke="${b}" stroke-width="2.5"/><line x1="100" y1="59" x2="100" y2="95" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="95" x2="80" y2="100" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="95" x2="120" y2="100" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="65" x2="75" y2="50" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="75" y1="50" x2="68" y2="35" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="65" x2="125" y2="50" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="125" y1="50" x2="132" y2="35" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="68" y1="35" x2="65" y2="22" stroke="#555" stroke-width="1.5" stroke-dasharray="3,2"/><line x1="132" y1="35" x2="135" y2="22" stroke="#555" stroke-width="1.5" stroke-dasharray="3,2"/><line x1="155" y1="28" x2="155" y2="48" stroke="${c}" stroke-width="2"/><polygon points="150,44 155,54 160,44" fill="${c}"/></svg>`,
+seated_cable_row:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="160" y="30" width="8" height="100" rx="2" fill="#444"/><rect x="45" y="95" width="70" height="5" rx="2" fill="#333"/><line x1="55" y1="100" x2="55" y2="130" stroke="${e}" stroke-width="2"/><line x1="105" y1="100" x2="105" y2="130" stroke="${e}" stroke-width="2"/><circle cx="78" cy="60" r="7" stroke="${b}" stroke-width="2.5"/><line x1="78" y1="67" x2="80" y2="92" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="80" y1="92" x2="115" y2="96" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="115" y1="96" x2="122" y2="115" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="78" y1="72" x2="95" y2="78" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="95" y1="78" x2="100" y2="85" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="164" y1="55" x2="100" y2="85" stroke="#555" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="138" y1="72" x2="115" y2="80" stroke="${c}" stroke-width="2"/><polygon points="119,75 110,80 119,85" fill="${c}"/></svg>`,
+face_pull:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="155" y="15" width="8" height="115" rx="2" fill="#444"/><circle cx="159" cy="45" r="5" fill="#555"/><circle cx="85" cy="42" r="7" stroke="${b}" stroke-width="2.5"/><line x1="85" y1="49" x2="85" y2="90" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="85" y1="90" x2="72" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="85" y1="90" x2="98" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="85" y1="60" x2="100" y2="52" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="52" x2="96" y2="40" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="85" y1="60" x2="100" y2="58" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="58" x2="96" y2="46" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="159" y1="45" x2="96" y2="43" stroke="#555" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="128" y1="43" x2="108" y2="42" stroke="${c}" stroke-width="2"/><polygon points="112,37 103,42 112,47" fill="${c}"/></svg>`,
+barbell_curl:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><circle cx="100" cy="32" r="7" stroke="${b}" stroke-width="2.5"/><line x1="100" y1="39" x2="100" y2="82" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="82" x2="88" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="82" x2="112" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="52" x2="92" y2="68" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="92" y1="68" x2="88" y2="52" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="52" x2="108" y2="68" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="108" y1="68" x2="112" y2="52" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="72" y1="52" x2="128" y2="52" stroke="#999" stroke-width="2.5"/><rect x="69" y="46" width="7" height="12" rx="1" fill="#777"/><rect x="125" y="46" width="7" height="12" rx="1" fill="#777"/><line x1="140" y1="65" x2="140" y2="45" stroke="${c}" stroke-width="2"/><polygon points="135,49 140,39 145,49" fill="${c}"/></svg>`,
+barbell_squat:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="40" y="15" width="4" height="115" rx="1" fill="#444"/><rect x="156" y="15" width="4" height="115" rx="1" fill="#444"/><circle cx="100" cy="35" r="7" stroke="${b}" stroke-width="2.5"/><line x1="100" y1="42" x2="100" y2="78" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="78" x2="78" y2="105" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="78" y1="105" x2="75" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="78" x2="122" y2="105" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="122" y1="105" x2="125" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="70" y1="36" x2="130" y2="36" stroke="#999" stroke-width="2.5"/><rect x="66" y="30" width="7" height="12" rx="1" fill="#777"/><rect x="127" y="30" width="7" height="12" rx="1" fill="#777"/><line x1="100" y1="48" x2="80" y2="55" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="48" x2="120" y2="55" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="168" y1="85" x2="168" y2="65" stroke="${c}" stroke-width="2"/><polygon points="163,69 168,59 173,69" fill="${c}"/></svg>`,
+leg_press:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><line x1="130" y1="25" x2="170" y2="120" stroke="#444" stroke-width="3" stroke-linecap="round"/><line x1="130" y1="25" x2="155" y2="25" stroke="#444" stroke-width="3" stroke-linecap="round"/><rect x="30" y="88" width="80" height="5" rx="2" fill="#333"/><line x1="40" y1="93" x2="40" y2="130" stroke="${e}" stroke-width="2"/><line x1="100" y1="93" x2="100" y2="130" stroke="${e}" stroke-width="2"/><circle cx="55" cy="70" r="7" stroke="${b}" stroke-width="2.5"/><line x1="55" y1="77" x2="60" y2="90" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="60" y1="88" x2="95" y2="78" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="95" y1="78" x2="130" y2="58" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="128" y1="60" x2="145" y2="70" stroke="${e}" stroke-width="6" stroke-linecap="round"/><line x1="152" y1="52" x2="162" y2="35" stroke="${c}" stroke-width="2"/><polygon points="156,41 165,30 167,44" fill="${c}"/></svg>`,
+romanian_deadlift:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><circle cx="70" cy="40" r="7" stroke="${b}" stroke-width="2.5"/><line x1="76" y1="44" x2="115" y2="60" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="115" y1="60" x2="110" y2="95" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="110" y1="95" x2="105" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="115" y1="60" x2="120" y2="95" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="120" y1="95" x2="125" y2="130" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="90" y1="50" x2="85" y2="68" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="85" y1="68" x2="82" y2="80" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="60" y1="80" x2="110" y2="80" stroke="#999" stroke-width="2.5"/><rect x="57" y="74" width="7" height="12" rx="1" fill="#777"/><rect x="107" y="74" width="7" height="12" rx="1" fill="#777"/><path d="M140 65 Q145 50 140 42" stroke="${c}" stroke-width="2" fill="none"/><polygon points="137,47 140,37 145,47" fill="${c}"/></svg>`,
+leg_curl:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="30" y="62" width="120" height="5" rx="2" fill="#333"/><line x1="40" y1="67" x2="40" y2="130" stroke="${e}" stroke-width="2"/><line x1="140" y1="67" x2="140" y2="130" stroke="${e}" stroke-width="2"/><circle cx="48" cy="54" r="7" stroke="${b}" stroke-width="2.5"/><line x1="55" y1="54" x2="120" y2="58" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="48" y1="58" x2="40" y2="75" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="120" y1="58" x2="142" y2="58" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="142" y1="58" x2="155" y2="38" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><rect x="152" y="33" width="8" height="5" rx="1" fill="#777"/><path d="M168 55 Q172 42 168 35" stroke="${c}" stroke-width="2" fill="none"/><polygon points="165,40 168,30 173,40" fill="${c}"/></svg>`,
+calf_raise:`<svg viewBox="0 0 200 140" fill="none"><line x1="15" y1="130" x2="185" y2="130" stroke="${g}" stroke-width="1"/><rect x="70" y="118" width="60" height="8" rx="2" fill="#444"/><circle cx="100" cy="28" r="7" stroke="${b}" stroke-width="2.5"/><line x1="100" y1="35" x2="100" y2="75" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="75" x2="95" y2="105" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="95" y1="105" x2="92" y2="118" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="75" x2="105" y2="105" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="105" y1="105" x2="108" y2="118" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="48" x2="82" y2="55" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="100" y1="48" x2="118" y2="55" stroke="${b}" stroke-width="2.5" stroke-linecap="round"/><line x1="142" y1="80" x2="142" y2="58" stroke="${c}" stroke-width="2"/><polygon points="137,62 142,52 147,62" fill="${c}"/></svg>`
+};
+return S[id]||'';
+}
+
+// ===== STATE =====
+let state={view:'home',type:null,warmupDone:false,session:null,openTips:new Set(),timerActive:false,histMonth:null,histYear:null,selectedDate:null};
+let history=[];
+
+function loadHistory(){
+try{const s=localStorage.getItem('ppl_history');if(s){history=JSON.parse(s);}}catch(e){history=[];}
+}
+function saveHistory(){try{localStorage.setItem('ppl_history',JSON.stringify(history));}catch(e){}}
+
+function getLastSession(type){
+return history.filter(h=>h.type===type).sort((a,b)=>b.date.localeCompare(a.date))[0]||null;
+}
+function getLastExercise(type,exId){
+const s=getLastSession(type);if(!s)return null;
+return s.exercises.find(e=>e.id===exId)||null;
+}
+
+// ===== IMPORT / EXPORT =====
+function exportData(){
+if(!history.length){showToast('No data to export','err');return;}
+const blob=new Blob([JSON.stringify(history,null,2)],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+const d=new Date();
+a.href=url;
+a.download=`ppl-history-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+document.body.appendChild(a);a.click();document.body.removeChild(a);
+URL.revokeObjectURL(url);
+showToast(`Exported ${history.length} sessions`);
+}
+
+function triggerImport(){
+document.getElementById('file-input').click();
+}
+
+function handleImport(e){
+const file=e.target.files[0];
+if(!file)return;
+const reader=new FileReader();
+reader.onload=function(ev){
+try{
+const data=JSON.parse(ev.target.result);
+if(!Array.isArray(data))throw new Error('Not an array');
+const valid=data.every(d=>d.date&&d.type&&Array.isArray(d.exercises));
+if(!valid)throw new Error('Invalid format');
+pendingImport=data;
+if(history.length>0){
+showImportChoice(data.length);
+}else{
+history=data;
+saveHistory();
+pendingImport=null;
+showToast(`Imported ${data.length} sessions`);
+render();
+}
+}catch(err){
+showToast('Invalid file format','err');
+}
+};
+reader.readAsText(file);
+e.target.value='';
+}
+
+let pendingImport=null;
+
+function importReplace(){
+if(!pendingImport)return;
+history=pendingImport;
+saveHistory();
+const n=pendingImport.length;
+pendingImport=null;
+closeOverlay();
+showToast(`Replaced with ${n} sessions`);
+render();
+}
+
+function importMerge(){
+if(!pendingImport)return;
+const existingDates=new Set(history.map(h=>h.date+h.type));
+let added=0;
+pendingImport.forEach(s=>{
+const key=s.date+s.type;
+if(!existingDates.has(key)){history.push(s);added++;}
+else{
+const idx=history.findIndex(h=>h.date===s.date&&h.type===s.type);
+if(idx>=0)history[idx]=s;
+}
+});
+saveHistory();
+pendingImport=null;
+closeOverlay();
+showToast(`Merged — ${added} new sessions added`);
+render();
+}
+
+function showImportChoice(count){
+const ov=document.getElementById('overlays');
+ov.innerHTML=`<div class="confirm-ov" id="confirm-overlay">
+<div class="confirm-box">
+<h3>Import ${count} sessions</h3>
+<p>You already have ${history.length} sessions. How would you like to import?</p>
+<div class="import-choice">
+<button class="ic-merge" onclick="importMerge()">🔀 Merge (keep both)</button>
+<button class="ic-replace" onclick="importReplace()">🗑 Replace all</button>
+<button class="ic-cancel" onclick="cancelImport()">Cancel</button>
+</div>
+</div></div>`;
+}
+
+function cancelImport(){
+pendingImport=null;
+closeOverlay();
+}
+
+function closeOverlay(){
+document.getElementById('overlays').innerHTML='';
+}
+
+function showToast(msg,type){
+const existing=document.querySelectorAll('.toast');
+existing.forEach(e=>e.remove());
+const t=document.createElement('div');
+t.className='toast'+(type==='err'?' err':'');
+t.textContent=msg;
+document.body.appendChild(t);
+setTimeout(()=>{if(t.parentNode)t.remove();},2500);
+}
+
+// ===== TIMER =====
+let audioCtx=null,timerStart=null,timerDur=0,timerCol='',timerRAF=null;
+
+function startRestTimer(seconds,color){
+timerDur=seconds;timerCol=color;timerStart=Date.now();state.timerActive=true;
+try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+renderTimer();tickTimer();
+}
+
+function tickTimer(){
+if(!state.timerActive)return;
+const el=(Date.now()-timerStart)/1000;
+if(el>=timerDur){state.timerActive=false;
+if(navigator.vibrate)navigator.vibrate([200,100,200]);
+const ov=document.getElementById('timer-overlay');if(ov)ov.remove();
+render();return;}
+updateTimerUI(el);timerRAF=requestAnimationFrame(tickTimer);
+}
+
+function renderTimer(){
+const ov=document.createElement('div');ov.className='timer-ov';ov.id='timer-overlay';
+const rem=timerDur;const m=Math.floor(rem/60);const s=rem%60;
+ov.innerHTML=`<div class="tl">Rest Timer</div><div class="tt" id="timer-num">${m}:${String(s).padStart(2,'0')}</div><div class="tb"><div class="tf" id="timer-fill" style="width:0%;background:${timerCol}"></div></div><button class="ts" onclick="skipRest()">Skip</button>`;
+document.body.appendChild(ov);
+}
+
+function updateTimerUI(el){
+const rem=Math.max(0,timerDur-el);const m=Math.floor(rem/60);const s=Math.floor(rem%60);
+const numEl=document.getElementById('timer-num');
+const fillEl=document.getElementById('timer-fill');
+if(numEl)numEl.textContent=`${m}:${String(s).padStart(2,'0')}`;
+if(fillEl)fillEl.style.width=`${(el/timerDur)*100}%`;
+}
+
+function skipRest(){
+state.timerActive=false;if(timerRAF)cancelAnimationFrame(timerRAF);
+const ov=document.getElementById('timer-overlay');if(ov)ov.remove();
+}
+
+// ===== HELPERS =====
+function formatDate(d){
+const dt=new Date(d+'T12:00:00');
+return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+function formatVol(v){
+if(v>=1000)return(v/1000).toFixed(1)+'k';
+return String(v);
+}
+function today(){return new Date().toISOString().split('T')[0];}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
+
+// ===== RENDER =====
+function render(){
+const ov=document.getElementById('timer-overlay');if(ov&&!state.timerActive)ov.remove();
+const app=document.getElementById('app');
+if(state.view==='home')renderHome(app);
+else if(state.view==='training')renderTraining(app);
+else if(state.view==='history')renderHistory(app);
+}
+
+function renderHome(app){
+let h='<div class="hdr"><h1>PPL Trainer</h1><button class="hdr-btn" onclick="goHistory()">📋 History</button></div>';
+h+='<div class="slabel">Choose your workout</div><div class="tcards">';
+for(const[k,p]of Object.entries(PROGRAMS)){
+const exList=p.exercises.map(e=>e.name).join(' · ');
+const last=getLastSession(k);
+const lastInfo=last?`<div style="font-size:11px;color:#555;margin-top:6px">Last: ${formatDate(last.date)}</div>`:'';
+h+=`<div class="tcard ${k}" onclick="startTraining('${k}')"><h2 style="color:${p.color}">${p.name} Day</h2><p>${p.exercises.length} exercises · ${p.exercises.reduce((a,e)=>a+e.sets,0)} sets</p><div class="elist">${exList}</div>${lastInfo}</div>`;
+}
+h+='</div>';app.innerHTML=h;
+}
+
+function renderTraining(app){
+const p=PROGRAMS[state.type];const c=p.color;
+let h=`<div class="shdr"><button class="bbtn" onclick="goHome()">← Back</button><h2 style="color:${c}">${p.name} Day</h2></div>`;
+h+=`<div class="warmup${state.warmupDone?' done':''}"><h3>🔥 Warm-up (~5 min)</h3><ul>`;
+p.warmup.forEach(w=>{h+=`<li>${w}</li>`;});
+h+=`</ul>${state.warmupDone?'<div style="text-align:center;color:#555;font-size:12px;margin-top:8px">✓ Done</div>':`<button class="wbtn" style="background:${c}" onclick="doneWarmup()">Warm-up Complete</button>`}</div>`;
+state.session.exercises.forEach((ex,ei)=>{
+const prog=p.exercises[ei];
+const lastEx=getLastExercise(state.type,ex.id);
+const tipOpen=state.openTips.has(ei);
+h+=`<div class="excard"><div class="exname">${ex.name}</div><div class="exmeta">${prog.sets} sets × ${prog.reps} reps · ${prog.rest}s rest</div>`;
+if(lastEx){
+h+=`<span class="exlast"><b>Previous:</b> `;
+h+=lastEx.sets.map((s,i)=>`${s.w}kg×${s.r} ${s.f}`).join(' → ');
+h+=`</span>`;
+}
+h+=`<button class="ttog" onclick="toggleTip(${ei})"><span>${tipOpen?'▾':'▸'}</span> 💡 Form tip & illustration</button>`;
+h+=`<div class="tbox${tipOpen?' open':''}">`;
+h+=getSVG(ex.id,c);
+h+=`<p>${prog.tip}</p></div>`;
+ex.sets.forEach((s,si)=>{
+const done=s.done;
+h+=`<div class="srow${done?' done':''}"><span class="slbl">${si+1}</span>`;
+h+=`<input class="sinp" type="text" inputmode="decimal" placeholder="kg" value="${s.w}" onchange="setW(${ei},${si},this.value)" onfocus="this.select()">`;
+h+=`<span class="sunit">kg</span><span class="sx">×</span>`;
+h+=`<input class="sinp" type="text" inputmode="numeric" placeholder="reps" value="${s.r}" onchange="setR(${ei},${si},this.value)" onfocus="this.select()">`;
+h+=`<div class="feels">`;
+FEELS.forEach(f=>{
+h+=`<button class="fb${s.f===f?' on':''}" onclick="setF(${ei},${si},'${f}')">${f}</button>`;
+});
+h+=`</div>`;
+h+=`<button class="sd${done?' chk':''}" onclick="completeSet(${ei},${si})">${done?'✓':'○'}</button>`;
+h+=`</div>`;
+});
+h+=`</div>`;
+});
+const allDone=state.session.exercises.every(ex=>ex.sets.every(s=>s.done));
+h+=`<button class="finbtn" style="background:${allDone?c:'#333'}" ${allDone?'':`disabled`} onclick="finishTraining()">Finish Training</button>`;
+app.innerHTML=h;
+}
+
+function renderHistory(app){
+const month=state.histMonth;
+const year=state.histYear;
+const monthName=new Date(year,month).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+const monthSessions=history.filter(s=>{
+const d=new Date(s.date+'T12:00:00');
+return d.getMonth()===month&&d.getFullYear()===year;
+});
+
+const totalSessions=monthSessions.length;
+const totalSets=monthSessions.reduce((a,s)=>a+s.exercises.reduce((b,e)=>b+e.sets.length,0),0);
+const totalVol=monthSessions.reduce((a,s)=>a+s.exercises.reduce((b,e)=>b+e.sets.reduce((c,st)=>c+(parseFloat(st.w)||0)*(parseInt(st.r)||0),0),0),0);
+const typeCounts={push:0,pull:0,legs:0};
+monthSessions.forEach(s=>{if(typeCounts[s.type]!==undefined)typeCounts[s.type]++;});
+
+const firstDay=new Date(year,month,1);
+const daysInMonth=new Date(year,month+1,0).getDate();
+let startDow=(firstDay.getDay()+6)%7;
+
+const dayMap={};
+monthSessions.forEach(s=>{
+const day=parseInt(s.date.split('-')[2]);
+if(!dayMap[day])dayMap[day]=[];
+dayMap[day].push(s);
+});
+
+const now=new Date();
+const isCurrentMonth=now.getMonth()===month&&now.getFullYear()===year;
+const todayDay=now.getDate();
+const canGoForward=!(year===now.getFullYear()&&month===now.getMonth());
+
+let h=`<div class="shdr"><button class="bbtn" onclick="goHome()">← Back</button><h2>History</h2></div>`;
+
+h+=`<input type="file" id="file-input" accept=".json,application/json" onchange="handleImport(event)">`;
+h+=`<div class="io-bar">`;
+h+=`<button class="io-btn" onclick="exportData()">📤 Export</button>`;
+h+=`<button class="io-btn" onclick="triggerImport()">📥 Import</button>`;
+h+=`</div>`;
+
+h+=`<div class="cal-nav"><button class="cal-arr" onclick="changeMonth(-1)">‹</button><span class="cal-month">${monthName}</span><button class="cal-arr" onclick="changeMonth(1)" ${canGoForward?'':'style="opacity:.3;pointer-events:none"'}>›</button></div>`;
+
+if(totalSessions>0){
+h+=`<div class="stats-grid">`;
+h+=`<div class="stat-card"><div class="stat-num">${totalSessions}</div><div class="stat-lbl">Sessions</div></div>`;
+h+=`<div class="stat-card"><div class="stat-num">${totalSets}</div><div class="stat-lbl">Sets</div></div>`;
+h+=`<div class="stat-card"><div class="stat-num">${formatVol(Math.round(totalVol))}</div><div class="stat-lbl">Volume kg</div></div>`;
+h+=`<div class="stat-card"><div class="stat-num">${Math.round(totalSets/totalSessions)}</div><div class="stat-lbl">Sets/Sess</div></div>`;
+h+=`</div>`;
+h+=`<div class="type-bar">`;
+if(typeCounts.push)h+=`<div class="type-chip" style="background:#3b82f618;color:#3b82f6;border:1px solid #3b82f630">Push ×${typeCounts.push}</div>`;
+if(typeCounts.pull)h+=`<div class="type-chip" style="background:#22c55e18;color:#22c55e;border:1px solid #22c55e30">Pull ×${typeCounts.pull}</div>`;
+if(typeCounts.legs)h+=`<div class="type-chip" style="background:#f9731618;color:#f97316;border:1px solid #f9731630">Legs ×${typeCounts.legs}</div>`;
+h+=`</div>`;
+}else{
+h+=`<div class="no-data">No workouts this month</div>`;
+}
+
+h+=`<div class="cal-wrap"><div class="cal-grid">`;
+['M','T','W','T','F','S','S'].forEach(d=>{
+h+=`<div class="cal-hdr">${d}</div>`;
+});
+for(let i=0;i<startDow;i++){
+h+=`<div class="cal-day empty"></div>`;
+}
+for(let d=1;d<=daysInMonth;d++){
+const sessions=dayMap[d]||[];
+const isToday=isCurrentMonth&&d===todayDay;
+const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const isSel=state.selectedDate===dateStr;
+const isFuture=isCurrentMonth&&d>todayDay;
+
+let cls='cal-day has-date';
+if(isToday)cls+=' today';
+if(sessions.length)cls+=' workout';
+if(isSel)cls+=' sel';
+
+let cellStyle='';
+if(sessions.length===1){
+const col=PROGRAMS[sessions[0].type]?PROGRAMS[sessions[0].type].color:'#888';
+cellStyle=`background:${col}12;border-color:${col}40`;
+if(isSel)cellStyle=`background:${col}25;border-color:${col}`;
+}else if(sessions.length>1){
+cellStyle=`background:#ffffff08;border-color:#ffffff20`;
+if(isSel)cellStyle=`background:#ffffff15;border-color:#fff`;
+}
+if(isFuture&&!sessions.length)cellStyle+=(cellStyle?';':'')+'opacity:.3';
+
+h+=`<div class="${cls}" style="${cellStyle}" ${sessions.length?`onclick="selectDate('${dateStr}')"`:''}>`;
+h+=`<span class="day-num">${d}</span>`;
+if(sessions.length){
+h+=`<div class="cal-dots">`;
+sessions.forEach(s=>{
+const col=PROGRAMS[s.type]?PROGRAMS[s.type].color:'#888';
+h+=`<div class="cal-dot" style="background:${col}"></div>`;
+});
+h+=`</div>`;
+}
+h+=`</div>`;
+}
+const totalCells=startDow+daysInMonth;
+const remaining=totalCells%7===0?0:7-totalCells%7;
+for(let i=0;i<remaining;i++){
+h+=`<div class="cal-day empty"></div>`;
+}
+h+=`</div></div>`;
+
+if(state.selectedDate){
+const selSessions=history.filter(s=>s.date===state.selectedDate);
+if(selSessions.length){
+h+=`<div class="day-detail" id="day-detail">`;
+h+=`<div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#aaa">${formatDate(state.selectedDate)}</div>`;
+selSessions.forEach(s=>{
+const p=PROGRAMS[s.type];
+const c=p?p.color:'#888';
+const totalSetVol=s.exercises.reduce((a,e)=>a+e.sets.reduce((b,st)=>b+(parseFloat(st.w)||0)*(parseInt(st.r)||0),0),0);
+h+=`<div class="dex-hdr" style="color:${c}">${s.type} day — ${formatVol(Math.round(totalSetVol))} kg vol</div>`;
+s.exercises.forEach(ex=>{
+h+=`<div class="dex"><div class="dex-name">${ex.name}</div>`;
+ex.sets.forEach((set,i)=>{
+h+=`<div class="dex-set">Set ${i+1}: <span style="color:#ddd">${set.w}kg × ${set.r}</span> ${set.f} <span style="color:#444">${FEEL_LABELS[set.f]||''}</span></div>`;
+});
+h+=`</div>`;
+});
+});
+h+=`</div>`;
+}
+}
+
+h+=`<div style="text-align:center;color:#333;font-size:11px;margin-top:20px;padding:8px">${history.length} total sessions stored</div>`;
+
+app.innerHTML=h;
+
+if(state.selectedDate){
+setTimeout(()=>{
+const el=document.getElementById('day-detail');
+if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});
+},50);
+}
+}
+
+// ===== ACTIONS =====
+function goHome(){state.view='home';state.session=null;state.warmupDone=false;state.openTips.clear();render();}
+
+function goHistory(){
+const now=new Date();
+state.histMonth=now.getMonth();
+state.histYear=now.getFullYear();
+state.selectedDate=null;
+state.view='history';
+render();
+}
+
+function changeMonth(delta){
+state.histMonth+=delta;
+if(state.histMonth>11){state.histMonth=0;state.histYear++;}
+if(state.histMonth<0){state.histMonth=11;state.histYear--;}
+state.selectedDate=null;
+render();
+}
+
+function selectDate(dateStr){
+state.selectedDate=state.selectedDate===dateStr?null:dateStr;
+render();
+}
+
+function startTraining(type){
+state.view='training';state.type=type;state.warmupDone=false;state.openTips.clear();
+const p=PROGRAMS[type];
+const session={exercises:p.exercises.map(ex=>{
+const last=getLastExercise(type,ex.id);
+const sets=[];
+for(let i=0;i<ex.sets;i++){
+const prevSet=last&&last.sets[i]?last.sets[i]:null;
+sets.push({w:prevSet?prevSet.w:'',r:'',f:'',done:false});
+}
+return{id:ex.id,name:ex.name,sets};
+})};
+state.session=session;render();
+}
+
+function doneWarmup(){state.warmupDone=true;render();}
+function toggleTip(i){if(state.openTips.has(i))state.openTips.delete(i);else state.openTips.add(i);render();}
+
+function setW(ei,si,v){state.session.exercises[ei].sets[si].w=v;}
+function setR(ei,si,v){state.session.exercises[ei].sets[si].r=v;}
+function setF(ei,si,f){
+const set=state.session.exercises[ei].sets[si];
+set.f=set.f===f?'':f;
+render();
+}
+
+function completeSet(ei,si){
+const set=state.session.exercises[ei].sets[si];
+if(!set.w||!set.r){
+const rows=document.querySelectorAll('.excard')[ei].querySelectorAll('.srow');
+if(rows[si]){rows[si].style.borderColor='#f87171';setTimeout(()=>{rows[si].style.borderColor='';},800);}
+return;
+}
+set.done=true;
+const prog=PROGRAMS[state.type].exercises[ei];
+const hasMore=state.session.exercises.some(ex=>ex.sets.some(s=>!s.done));
+render();
+if(hasMore){startRestTimer(prog.rest,PROGRAMS[state.type].color);}
+}
+
+function finishTraining(){
+const entry={
+id:uid(),
+date:today(),
+type:state.type,
+exercises:state.session.exercises.map(ex=>({
+id:ex.id,name:ex.name,
+sets:ex.sets.map(s=>({w:parseFloat(s.w)||0,r:parseInt(s.r)||0,f:s.f}))
+}))
+};
+history.push(entry);
+saveHistory();
+state.view='home';state.session=null;state.warmupDone=false;state.openTips.clear();
+render();
+}
+
+// ===== INIT =====
+loadHistory();
+render();
+</script>
+</body>
+</html>
